@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Watchlist - Plotline</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="watchlist">
+
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <span class="logo-accent">Plot</span>line
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="watchlist.html" class="nav-link active">Watchlist</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">My Watchlist</h2>
+        </div>
+
+        <div id="watchlist-grid" class="poster-grid"></div>
+
+        <div id="empty-watchlist" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">&#128221;</div>
+            <h3 class="empty-state-title">Your watchlist is empty</h3>
+            <p class="empty-state-text">Explore popular movies and TV shows or search for your favorite titles to add them here.</p>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-brand">Plotline</div>
+        <p>Movie & TV Show Discovery Platform</p>
+        <p class="footer-tmdb">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotline - Movie and TV Show Discovery</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <span class="logo-accent">Plot</span>line
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="watchlist.html" class="nav-link">Watchlist</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="search-section">
+            <form id="search-form" class="search-form">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    class="search-input" 
+                    placeholder="Search for movies or TV shows..." 
+                    required
+                >
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </section>
+
+        <section id="search-results-section" class="content-section" style="display: none;">
+            <div class="section-header">
+                <h2 id="search-results-title" class="section-title">Search Results</h2>
+                <button id="clear-search-btn" class="clear-search-btn">Clear Search</button>
+            </div>
+            <div id="search-results-grid" class="poster-grid"></div>
+        </section>
+
+        <section id="popular-movies-section" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Popular Movies</h2>
+            </div>
+            <div id="popular-movies-grid" class="poster-grid">
+                <div class="status-message">Loading popular movies...</div>
+            </div>
+        </section>
+
+        <section id="popular-tv-section" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Popular TV Shows</h2>
+            </div>
+            <div id="popular-tv-grid" class="poster-grid">
+                <div class="status-message">Loading popular TV shows...</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-brand">Plotline</div>
+        <p>Movie & TV Show Discovery Platform</p>
+        <p class="footer-tmdb">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
