@@ -1,4 +1,4 @@
-const API_KEY = "155dcce6b2c38f5f94080010ce1698fe";
+const API_KEY = "insert_API_key";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_PROFILE_BASE = "https://image.tmdb.org/t/p/w185";
