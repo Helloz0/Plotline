@@ -3,8 +3,8 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_PROFILE_BASE = "https://image.tmdb.org/t/p/w185";
 
-const POSTER_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22450%22%20viewBox%3D%220%200%20300%20450%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23161b22%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22260%22%20height%3D%22410%22%20rx%3D%228%22%20fill%3D%22none%22%20stroke%3D%22%2330363d%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M110%20180h80v70h-80z%22%20fill%3D%22none%22%20stroke%3D%22%238b949e%22%20stroke-width%3D%224%22%2F%3E%3Ccircle%20cx%3D%22135%22%20cy%3D%22205%22%20r%3D%2210%22%20fill%3D%22%238b949e%22%2F%3E%3Cpath%20d%3D%22M115%20245l25-30%2020%2020%2025-35%22%20fill%3D%22none%22%20stroke%3D%22%238b949e%22%20stroke-width%3D%223%22%2F%3E%3Ctext%20x%3D%22150%22%20y%3D%22285%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20fill%3D%22%238b949e%22%20text-anchor%3D%22middle%22%20font-weight%3D%22bold%22%3ENo%20Poster%3C%2Ftext%3E%3C%2Fsvg%3E";
-const PROFILE_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%2321262d%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2240%22%20r%3D%2220%22%20fill%3D%22%238b949e%22%2F%3E%3Cpath%20d%3D%22M20%2085c0-16.5%2013.5-30%2030-30s30%2013.5%2030%2030z%22%20fill%3D%22%238b949e%22%2F%3E%3C%2Fsvg%3E";
+const POSTER_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' fill='%23151a23'%3E%3Crect width='100%25' height='100%25'/%3E%3Ctext x='50%25' y='50%25' fill='%2364748b' font-family='sans-serif' font-size='16' text-anchor='middle' dy='.3em'%3ENo Poster%3C/text%3E%3C/svg%3E";
+const PROFILE_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%231c2230'%3E%3Ccircle cx='50' cy='50' r='50'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%2364748b'/%3E%3Cpath d='M25 80c0-14 11-25 25-25s25 11 25 25z' fill='%2364748b'/%3E%3C/svg%3E";
 
 function getWatchlist() {
     const data = localStorage.getItem("plotline_watchlist");
@@ -17,9 +17,12 @@ function saveWatchlist(list) {
 
 function isItemInWatchlist(id, type) {
     const list = getWatchlist();
-    return list.some(function (item) {
-        return String(item.id) === String(id) && item.type === type;
-    });
+    for (let i = 0; i < list.length; i++) {
+        if (String(list[i].id) === String(id) && list[i].type === type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function addToWatchlist(item) {
@@ -32,28 +35,16 @@ function addToWatchlist(item) {
 
 function removeFromWatchlist(id, type) {
     const list = getWatchlist();
-    const updated = list.filter(function (item) {
-        return !(String(item.id) === String(id) && item.type === type);
-    });
+    const updated = [];
+    for (let i = 0; i < list.length; i++) {
+        if (!(String(list[i].id) === String(id) && list[i].type === type)) {
+            updated.push(list[i]);
+        }
+    }
     saveWatchlist(updated);
 }
 
-function checkApiKey() {
-    if (!API_KEY || API_KEY === "YOUR_TMDB_API_KEY_HERE") {
-        const main = document.querySelector("main");
-        if (main && !document.getElementById("api-notice")) {
-            const notice = document.createElement("div");
-            notice.id = "api-notice";
-            notice.className = "api-notice";
-            notice.innerHTML = "<strong>TMDB API Key Required:</strong> Please replace <code>YOUR_TMDB_API_KEY_HERE</code> in <code>script.js</code> with your TMDB v3 API key to load movies and TV shows.";
-            main.insertBefore(notice, main.firstChild);
-        }
-        return false;
-    }
-    return true;
-}
-
-function createPosterCard(item, defaultType) {
+function createPosterCard(item, defaultType, showBadge) {
     const mediaType = item.media_type || defaultType;
     const title = item.title || item.name || "Untitled";
     const releaseDate = item.release_date || item.first_air_date || "";
@@ -61,93 +52,92 @@ function createPosterCard(item, defaultType) {
     const poster = item.poster_path ? (TMDB_IMAGE_BASE + item.poster_path) : POSTER_PLACEHOLDER;
     const typeLabel = mediaType === "tv" ? "TV Show" : "Movie";
 
+    let ratingHtml = "";
+    if (item.vote_average) {
+        ratingHtml = "<span class=\"card-rating\">&#9733; " + item.vote_average.toFixed(1) + "</span>";
+    }
+
+    let badgeHtml = "";
+    if (showBadge) {
+        badgeHtml = "<span class=\"type-badge\">" + typeLabel + "</span>";
+    }
+
     const card = document.createElement("a");
     card.className = "poster-card";
     card.href = "details.html?id=" + item.id + "&type=" + mediaType;
 
     card.innerHTML = `
         <div class="poster-image-wrap">
-            <span class="type-badge">${typeLabel}</span>
+            ${badgeHtml}
             <img src="${poster}" alt="${title}" class="poster-image" onerror="this.src='${POSTER_PLACEHOLDER}'">
         </div>
         <div class="card-info">
             <div class="card-title">${title}</div>
-            <div class="card-year">${year}</div>
+            <div class="card-bottom">
+                <span class="card-year">${year}</span>
+                ${ratingHtml}
+            </div>
         </div>
     `;
 
     return card;
 }
 
-function initHomePage() {
-    if (!checkApiKey()) {
-        const movieGrid = document.getElementById("popular-movies-grid");
-        const tvGrid = document.getElementById("popular-tv-grid");
-        if (movieGrid) movieGrid.innerHTML = "<div class='status-message'>Insert API key in script.js to view popular movies.</div>";
-        if (tvGrid) tvGrid.innerHTML = "<div class='status-message'>Insert API key in script.js to view popular TV shows.</div>";
-        return;
+function loadPopularSection(type, gridId) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+
+    const urls = [
+        TMDB_BASE_URL + "/discover/" + type + "?api_key=" + API_KEY + "&sort_by=popularity.desc",
+        TMDB_BASE_URL + "/" + type + "/popular?api_key=" + API_KEY,
+        TMDB_BASE_URL + "/trending/" + type + "/week?api_key=" + API_KEY
+    ];
+
+    function tryFetch(index) {
+        if (index >= urls.length) {
+            grid.innerHTML = "<div class='status-message'>Unable to load titles right now. Please check your internet connection or ad-blocker settings.</div>";
+            return;
+        }
+
+        fetch(urls[index])
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error("HTTP " + res.status);
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                grid.innerHTML = "";
+                const items = data.results || [];
+                if (items.length > 0) {
+                    for (let i = 0; i < items.length; i++) {
+                        const card = createPosterCard(items[i], type, false);
+                        grid.appendChild(card);
+                    }
+                } else {
+                    tryFetch(index + 1);
+                }
+            })
+            .catch(function () {
+                tryFetch(index + 1);
+            });
     }
 
-    loadPopularMovies();
-    loadPopularTVShows();
-    initSearch();
+    tryFetch(0);
 }
 
-function loadPopularMovies() {
-    const grid = document.getElementById("popular-movies-grid");
-    const url = TMDB_BASE_URL + "/movie/popular?api_key=" + API_KEY;
+function initHomePage() {
+    loadPopularSection("movie", "popular-movies-grid");
+    loadPopularSection("tv", "popular-tv-grid");
 
-    fetch(url)
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (data) {
-            grid.innerHTML = "";
-            if (data.results && data.results.length > 0) {
-                for (let i = 0; i < data.results.length; i++) {
-                    const card = createPosterCard(data.results[i], "movie");
-                    grid.appendChild(card);
-                }
-            } else {
-                grid.innerHTML = "<div class='status-message'>No popular movies found.</div>";
-            }
-        })
-        .catch(function () {
-            grid.innerHTML = "<div class='status-message'>Failed to load popular movies. Please check your internet connection or API key.</div>";
-        });
-}
-
-function loadPopularTVShows() {
-    const grid = document.getElementById("popular-tv-grid");
-    const url = TMDB_BASE_URL + "/tv/popular?api_key=" + API_KEY;
-
-    fetch(url)
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (data) {
-            grid.innerHTML = "";
-            if (data.results && data.results.length > 0) {
-                for (let i = 0; i < data.results.length; i++) {
-                    const card = createPosterCard(data.results[i], "tv");
-                    grid.appendChild(card);
-                }
-            } else {
-                grid.innerHTML = "<div class='status-message'>No popular TV shows found.</div>";
-            }
-        })
-        .catch(function () {
-            grid.innerHTML = "<div class='status-message'>Failed to load popular TV shows. Please check your internet connection or API key.</div>";
-        });
-}
-
-function initSearch() {
     const form = document.getElementById("search-form");
     const input = document.getElementById("search-input");
     const resultsSection = document.getElementById("search-results-section");
     const resultsGrid = document.getElementById("search-results-grid");
     const resultsTitle = document.getElementById("search-results-title");
     const clearBtn = document.getElementById("clear-search-btn");
+
+    if (!form) return;
 
     form.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -161,22 +151,23 @@ function initSearch() {
         const url = TMDB_BASE_URL + "/search/multi?api_key=" + API_KEY + "&query=" + encodeURIComponent(query);
 
         fetch(url)
-            .then(function (response) {
-                return response.json();
+            .then(function (res) {
+                return res.json();
             })
             .then(function (data) {
                 resultsGrid.innerHTML = "";
+                const list = [];
+                const raw = data.results || [];
 
-                let filtered = [];
-                if (data.results && data.results.length > 0) {
-                    filtered = data.results.filter(function (item) {
-                        return item.media_type === "movie" || item.media_type === "tv";
-                    });
+                for (let i = 0; i < raw.length; i++) {
+                    if (raw[i].media_type === "movie" || raw[i].media_type === "tv") {
+                        list.push(raw[i]);
+                    }
                 }
 
-                if (filtered.length > 0) {
-                    for (let i = 0; i < filtered.length; i++) {
-                        const card = createPosterCard(filtered[i], filtered[i].media_type);
+                if (list.length > 0) {
+                    for (let i = 0; i < list.length; i++) {
+                        const card = createPosterCard(list[i], list[i].media_type, true);
                         resultsGrid.appendChild(card);
                     }
                 } else {
@@ -190,11 +181,13 @@ function initSearch() {
             });
     });
 
-    clearBtn.addEventListener("click", function () {
-        input.value = "";
-        resultsSection.style.display = "none";
-        resultsGrid.innerHTML = "";
-    });
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            input.value = "";
+            resultsSection.style.display = "none";
+            resultsGrid.innerHTML = "";
+        });
+    }
 }
 
 function initDetailsPage() {
@@ -211,125 +204,112 @@ function initDetailsPage() {
         });
     }
 
-    if (!checkApiKey()) {
-        container.innerHTML = "<div class='status-message'>Insert API key in script.js to view details.</div>";
-        return;
-    }
-
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const type = params.get("type");
 
-    if (!id || !type) {
-        container.innerHTML = "<div class='status-message'>Invalid title selection. Please return to the homepage.</div>";
+    if (!id || !type || !container) {
+        if (container) container.innerHTML = "<div class='status-message'>Invalid title selection. Please return to the homepage.</div>";
         return;
     }
 
     const url = TMDB_BASE_URL + "/" + type + "/" + id + "?api_key=" + API_KEY + "&append_to_response=credits";
 
     fetch(url)
-        .then(function (response) {
-            return response.json();
+        .then(function (res) {
+            return res.json();
         })
         .then(function (data) {
-            renderDetails(data, type);
+            const title = data.title || data.name || "Untitled";
+            const releaseDate = data.release_date || data.first_air_date || "Unknown";
+            const year = releaseDate !== "Unknown" ? releaseDate.slice(0, 4) : "N/A";
+            const rating = data.vote_average ? data.vote_average.toFixed(1) : "N/A";
+            const overview = data.overview && data.overview.trim() !== "" ? data.overview : "No description available.";
+            const poster = data.poster_path ? (TMDB_IMAGE_BASE + data.poster_path) : POSTER_PLACEHOLDER;
+            const typeLabel = type === "tv" ? "TV Show" : "Movie";
+
+            document.title = title + " - Plotline";
+
+            let castHtml = "";
+            if (data.credits && data.credits.cast && data.credits.cast.length > 0) {
+                const count = Math.min(data.credits.cast.length, 10);
+                for (let i = 0; i < count; i++) {
+                    const member = data.credits.cast[i];
+                    const photo = member.profile_path ? (TMDB_PROFILE_BASE + member.profile_path) : PROFILE_PLACEHOLDER;
+                    castHtml += `
+                        <div class="cast-card">
+                            <img src="${photo}" alt="${member.name}" class="cast-image" onerror="this.src='${PROFILE_PLACEHOLDER}'">
+                            <span class="cast-name">${member.name}</span>
+                            <span class="cast-character">${member.character || ""}</span>
+                        </div>
+                    `;
+                }
+            } else {
+                castHtml = "<p style='color: #94a3b8; font-size: 14px;'>Cast information unavailable.</p>";
+            }
+
+            const inWatchlist = isItemInWatchlist(data.id, type);
+            const btnClass = inWatchlist ? "watchlist-btn remove" : "watchlist-btn add";
+            const btnText = inWatchlist ? "Remove from Watchlist" : "+ Add to Watchlist";
+
+            container.innerHTML = `
+                <div class="details-card">
+                    <div class="details-poster-wrap">
+                        <img src="${poster}" alt="${title}" class="details-poster" onerror="this.src='${POSTER_PLACEHOLDER}'">
+                    </div>
+                    <div class="details-info">
+                        <h1 class="details-title">${title}</h1>
+                        <div class="details-meta">
+                            <span class="meta-badge">${typeLabel}</span>
+                            <span class="meta-badge rating-badge">&#9733; ${rating}</span>
+                            <span>Released: ${releaseDate}</span>
+                        </div>
+                        <div>
+                            <button id="watchlist-toggle-btn" class="${btnClass}">${btnText}</button>
+                        </div>
+                        <h3 class="details-overview-heading">Storyline</h3>
+                        <p class="details-overview">${overview}</p>
+                        <div class="cast-section">
+                            <h3 class="cast-heading">Cast</h3>
+                            <div class="cast-scroll-container">
+                                ${castHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const toggleBtn = document.getElementById("watchlist-toggle-btn");
+            toggleBtn.addEventListener("click", function () {
+                const isSaved = isItemInWatchlist(data.id, type);
+                if (isSaved) {
+                    removeFromWatchlist(data.id, type);
+                    toggleBtn.className = "watchlist-btn add";
+                    toggleBtn.textContent = "+ Add to Watchlist";
+                } else {
+                    addToWatchlist({
+                        id: data.id,
+                        type: type,
+                        title: title,
+                        year: year,
+                        poster: poster
+                    });
+                    toggleBtn.className = "watchlist-btn remove";
+                    toggleBtn.textContent = "Remove from Watchlist";
+                }
+            });
         })
         .catch(function () {
             container.innerHTML = "<div class='status-message'>Failed to load title details. Please check your connection or API key.</div>";
         });
 }
 
-function renderDetails(data, type) {
-    const container = document.getElementById("details-container");
-    const title = data.title || data.name || "Untitled";
-    const releaseDate = data.release_date || data.first_air_date || "Unknown";
-    const year = releaseDate !== "Unknown" ? releaseDate.slice(0, 4) : "N/A";
-    const rating = data.vote_average ? data.vote_average.toFixed(1) + " / 10" : "N/A";
-    const overview = data.overview && data.overview.trim() !== "" ? data.overview : "No description available.";
-    const poster = data.poster_path ? (TMDB_IMAGE_BASE + data.poster_path) : POSTER_PLACEHOLDER;
-    const typeLabel = type === "tv" ? "TV Show" : "Movie";
-
-    let castHtml = "";
-    if (data.credits && data.credits.cast && data.credits.cast.length > 0) {
-        const topCast = data.credits.cast.slice(0, 10);
-        for (let i = 0; i < topCast.length; i++) {
-            const member = topCast[i];
-            const memberPhoto = member.profile_path ? (TMDB_PROFILE_BASE + member.profile_path) : PROFILE_PLACEHOLDER;
-            castHtml += `
-                <div class="cast-card">
-                    <img src="${memberPhoto}" alt="${member.name}" class="cast-image" onerror="this.src='${PROFILE_PLACEHOLDER}'">
-                    <span class="cast-name">${member.name}</span>
-                    <span class="cast-character">${member.character || ""}</span>
-                </div>
-            `;
-        }
-    } else {
-        castHtml = "<p style='color: #8b949e; font-size: 14px;'>Cast information unavailable.</p>";
-    }
-
-    const inWatchlist = isItemInWatchlist(data.id, type);
-    const btnClass = inWatchlist ? "watchlist-btn remove" : "watchlist-btn add";
-    const btnText = inWatchlist ? "Remove from Watchlist" : "+ Add to Watchlist";
-
-    container.innerHTML = `
-        <div class="details-container">
-            <div class="details-poster-wrap">
-                <img src="${poster}" alt="${title}" class="details-poster" onerror="this.src='${POSTER_PLACEHOLDER}'">
-            </div>
-            <div class="details-info">
-                <h1 class="details-title">${title}</h1>
-                <div class="details-meta">
-                    <span class="meta-badge">${typeLabel}</span>
-                    <span class="meta-badge">${year}</span>
-                    <span class="meta-badge rating-badge">&#9733; ${rating}</span>
-                    <span>Released: ${releaseDate}</span>
-                </div>
-                <div>
-                    <button id="watchlist-toggle-btn" class="${btnClass}">${btnText}</button>
-                </div>
-                <h3 class="details-overview-heading">Storyline</h3>
-                <p class="details-overview">${overview}</p>
-                <div class="cast-section">
-                    <h3 class="cast-heading">Cast</h3>
-                    <div class="cast-scroll-container">
-                        ${castHtml}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const toggleBtn = document.getElementById("watchlist-toggle-btn");
-    toggleBtn.addEventListener("click", function () {
-        const currentSaved = isItemInWatchlist(data.id, type);
-        if (currentSaved) {
-            removeFromWatchlist(data.id, type);
-            toggleBtn.className = "watchlist-btn add";
-            toggleBtn.textContent = "+ Add to Watchlist";
-        } else {
-            const itemToSave = {
-                id: data.id,
-                type: type,
-                title: title,
-                year: year,
-                poster: poster
-            };
-            addToWatchlist(itemToSave);
-            toggleBtn.className = "watchlist-btn remove";
-            toggleBtn.textContent = "Remove from Watchlist";
-        }
-    });
-}
-
 function initWatchlistPage() {
-    renderWatchlistGrid();
-}
-
-function renderWatchlistGrid() {
     const grid = document.getElementById("watchlist-grid");
     const emptyState = document.getElementById("empty-watchlist");
-    const list = getWatchlist();
+    if (!grid || !emptyState) return;
 
+    const list = getWatchlist();
     grid.innerHTML = "";
 
     if (list.length === 0) {
@@ -353,7 +333,9 @@ function renderWatchlistGrid() {
                 </div>
                 <div class="card-info">
                     <div class="card-title">${item.title}</div>
-                    <div class="card-year">${item.year}</div>
+                    <div class="card-bottom">
+                        <span class="card-year">${item.year}</span>
+                    </div>
                 </div>
             </a>
             <div class="card-action">
@@ -365,7 +347,7 @@ function renderWatchlistGrid() {
         removeBtn.addEventListener("click", function (e) {
             e.preventDefault();
             removeFromWatchlist(item.id, item.type);
-            renderWatchlistGrid();
+            initWatchlistPage();
         });
 
         grid.appendChild(card);
@@ -374,7 +356,6 @@ function renderWatchlistGrid() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const page = document.body.getAttribute("data-page");
-
     if (page === "home") {
         initHomePage();
     } else if (page === "details") {
