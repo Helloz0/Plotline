@@ -70,27 +70,7 @@ No web server, node installation, or build tool is required:
 
 ---
 
-## 5. College Viva / Exam Questions & Answers
-
-Here are key technical concepts used in this project for viva explanation:
-
-1. **How does data persist in the Watchlist?**
-   - The watchlist uses browser `window.localStorage`. Data is serialized to a JSON string using `JSON.stringify()` when saving, and deserialized back into a JavaScript array using `JSON.parse()` when reading.
-2. **How does the Details page know which movie or show was clicked?**
-   - It uses URL query parameters (e.g. `details.html?id=123&type=movie`). The page reads these parameters using the native `URLSearchParams` API:
-     ```javascript
-     const params = new URLSearchParams(window.location.search);
-     const id = params.get("id");
-     const type = params.get("type");
-     ```
-3. **How does the search bar search both movies and TV shows?**
-   - It queries TMDB's `/search/multi` endpoint and filters the results array so that only items with `media_type === "movie"` or `media_type === "tv"` are displayed.
-4. **How are missing images handled?**
-   - Poster and cast images use inline SVG data URIs (`POSTER_PLACEHOLDER` and `PROFILE_PLACEHOLDER`) along with the HTML `onerror` attribute, ensuring that missing images or network dropouts display a clean fallback instead of a broken image icon.
-
----
-
-## 6. TMDB Attribution
+## 5. TMDB Attribution
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
 All movie and TV show data and imagery are provided by [The Movie Database](https://www.themoviedb.org/).
